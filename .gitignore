@@ -1,0 +1,6 @@
+# Ignora le cartelle di cache di Gradle
+*/.gradle
+
+# Ignora le cartelle di output della compilazione
+*/build/
+*/bin/
