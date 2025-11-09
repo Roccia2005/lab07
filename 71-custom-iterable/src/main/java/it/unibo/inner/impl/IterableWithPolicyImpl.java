@@ -1,7 +1,6 @@
 package it.unibo.inner.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -10,16 +9,26 @@ import it.unibo.inner.api.Predicate;
 
 public class IterableWithPolicyImpl<T> implements IterableWithPolicy<T> {
 
-    final private List<T> elements;
+    final private T[] elements;
+    private Predicate<T> predicate;
+
+    public IterableWithPolicyImpl(T[] elements, Predicate<T> predicate){
+        this.elements = elements;
+        this.predicate = predicate;
+    }
 
     public IterableWithPolicyImpl(T[] elements){
-        this.elements = List.of(elements);
+        this(elements, new Predicate<>() {
+            public boolean test(final T elem) {
+                return true;
+            }
+        }
+        );
     }
 
     @Override
     public void setIterationPolicy(Predicate<T> filter) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setIterationPolicy'");
+        this.predicate = filter;
     }
 
     @Override
@@ -27,8 +36,15 @@ public class IterableWithPolicyImpl<T> implements IterableWithPolicy<T> {
         return new IteratorImpl();
     }
 
-    public String toString(){
-        return this.elements.toString();
+        @Override
+    public String toString() {
+        final List<T> filteredElements = new ArrayList<>();
+
+        for (final T element : this) {
+            filteredElements.add(element);
+        }
+
+        return filteredElements.toString();
     }
 
     class IteratorImpl implements Iterator<T>{
@@ -37,15 +53,25 @@ public class IterableWithPolicyImpl<T> implements IterableWithPolicy<T> {
 
         @Override
         public boolean hasNext() {
-            return IterableWithPolicyImpl.this.elements.size() > index;
+            while(IterableWithPolicyImpl.this.elements.length > index
+                     && !IterableWithPolicyImpl.this.predicate.test(IterableWithPolicyImpl.this.elements[index])){
+                        index++;
+                }
+            if (index < IterableWithPolicyImpl.this.elements.length){
+                return true;
+            }else{
+                return false;
+            }
         }
 
         @Override
         public T next() {
-            return IterableWithPolicyImpl.this.elements.get(index++);
+            if (hasNext()){
+                return IterableWithPolicyImpl.this.elements[index++];
+            }
+            return null;
         }
-
-
+        
     }
     
 }
